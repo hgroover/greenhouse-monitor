@@ -20,6 +20,8 @@
 #include <SPI.h>
 #include <Ethernet.h>
 #include <EthernetUdp.h>
+// This is the older dht11 library. The newer DHT library (supporting both dht11 and dht22)
+// also requires the Adafruit Unified Sensor Library and has slightly different usage.
 #include <dht11.h>
 
 #define VERSION_STR  "1.0.11"
