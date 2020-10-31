@@ -24,7 +24,7 @@
 // also requires the Adafruit Unified Sensor Library and has slightly different usage.
 #include <dht11.h>
 
-#define VERSION_STR  "1.0.11"
+#define VERSION_STR  "1.0.12b"
 // Offset from UTC to local standard time in seconds (e.g. Los Angeles is -8 hours or -28800 seconds; New Delhi, 19800
 // No DST - plants don't care about civic time
 //const long utcOffset = -28800; // PST
@@ -80,6 +80,7 @@ int blinkState = LOW;
 unsigned long lastRequest = 0;
 unsigned long lastChange = 0;
 unsigned long lastFlipFlop = 0;
+unsigned long lastNtpCheck = 0;
 
 // Request rate in ms
 unsigned long requestRate = 30 * 1000;
@@ -146,6 +147,10 @@ byte staticIP[] = {192,168,1,20};
 const int NTP_PACKET_SIZE = 48; // NTP time stamp is in the first 48 bytes of the message
 
 byte packetBuffer[ NTP_PACKET_SIZE]; //buffer to hold incoming and outgoing packets
+
+// NTP debug vars
+int ntpPacketSize = 0;
+unsigned long ntpLastTime = 0;
 
 // A UDP instance to let us send and receive packets over UDP
 EthernetUDP Udp;
@@ -388,7 +393,8 @@ int loop_ntp()
       ntpState = millis();
         // wait to see if a reply is available
   delay(2000);
-  if (Udp.parsePacket()) {
+  ntpPacketSize = Udp.parsePacket();
+  if (ntpPacketSize) {
     //Serial.println("Got udp response from ntp request");
     // We've received a packet, read the data from it
     Udp.read(packetBuffer, NTP_PACKET_SIZE); // read the packet into the buffer
@@ -401,40 +407,45 @@ int loop_ntp()
     // combine the four bytes (two words) into a long integer
     // this is NTP time (seconds since Jan 1 1900):
     unsigned long secsSince1900 = highWord << 16 | lowWord;
+    // Save for later display
+    ntpLastTime = secsSince1900;
     //Serial.print("epoch1900 = ");
     //Serial.println(secsSince1900);
 
-    // now convert NTP time into everyday time:
-    Serial.print("Unix time = ");
-    // Unix time starts on Jan 1 1970. In seconds, that's 2208988800:
-    const unsigned long seventyYears = 2208988800UL;
-    // subtract seventy years:
-    unsigned long epoch = secsSince1900 - seventyYears;
-    time_utc_sec = epoch;
-    time_utc_millis = millis();
-    time_utc_ms = time_utc_millis % 1000;
-    // print Unix time:
-    Serial.println(epoch);
-
-
-    // print the hour, minute and second:
-    //Serial.println("The UTC time is " + hms(epoch));       // UTC is the time at Greenwich Meridian (GMT)
-    /***
-    Serial.print((epoch  % 86400L) / 3600); // print the hour (86400 equals secs per day)
-    Serial.print(':');
-    if (((epoch % 3600) / 60) < 10) {
-      // In the first 10 minutes of each hour, we'll want a leading '0'
-      Serial.print('0');
-    }
-    Serial.print((epoch  % 3600) / 60); // print the minute (3600 equals secs per minute)
-    Serial.print(':');
-    if ((epoch % 60) < 10) {
-      // In the first 10 seconds of each minute, we'll want a leading '0'
-      Serial.print('0');
-    }
-    Serial.println(epoch % 60); // print the second
-    ***/
-    //Serial.println("Local non-civic time is " + hms(epoch+utcOffset) );
+    if (secsSince1900 > 0)
+    {
+      // now convert NTP time into everyday time:
+      Serial.print("Unix time = ");
+      // Unix time starts on Jan 1 1970. In seconds, that's 2208988800:
+      const unsigned long seventyYears = 2208988800UL;
+      // subtract seventy years:
+      unsigned long epoch = secsSince1900 - seventyYears;
+      time_utc_sec = epoch;
+      time_utc_millis = millis();
+      time_utc_ms = time_utc_millis % 1000;
+      // print Unix time:
+      Serial.println(epoch);
+  
+  
+      // print the hour, minute and second:
+      //Serial.println("The UTC time is " + hms(epoch));       // UTC is the time at Greenwich Meridian (GMT)
+      /***
+      Serial.print((epoch  % 86400L) / 3600); // print the hour (86400 equals secs per day)
+      Serial.print(':');
+      if (((epoch % 3600) / 60) < 10) {
+        // In the first 10 minutes of each hour, we'll want a leading '0'
+        Serial.print('0');
+      }
+      Serial.print((epoch  % 3600) / 60); // print the minute (3600 equals secs per minute)
+      Serial.print(':');
+      if ((epoch % 60) < 10) {
+        // In the first 10 seconds of each minute, we'll want a leading '0'
+        Serial.print('0');
+      }
+      Serial.println(epoch % 60); // print the second
+      ***/
+      //Serial.println("Local non-civic time is " + hms(epoch+utcOffset) );
+    } // Valid NTP time received
   }
   //else Serial.println("No NTP response");
 
@@ -506,7 +517,7 @@ int loop_webserver()
           client.println("HTTP/1.1 200 OK");
           client.println("Content-Type: text/html");
           client.println("Connection: close");  // the connection will be closed after completion of the response
-          client.println("Refresh: 30; url=/?r=" + String(time_utc_sec));  // refresh the page automatically every 30 sec
+          client.println("Refresh: 120; url=/?r=" + String(time_utc_sec));  // refresh the page automatically every 2m
           client.println();
           client.println("<!DOCTYPE HTML>");
           client.println("<html>");
@@ -522,7 +533,7 @@ int loop_webserver()
           }
           ****/
           unsigned long curMillis = millis();
-          client.println( "<h5>GHmgr v" VERSION_STR " " + hms(time_utc_sec + utcOffset) + " " + String(decTime) + " " + SecondsPlusMS(time_utc_sec, time_utc_ms) + " " + SecondsPlusMS(ntpState/1000, ntpState%1000) + " " + SecondsPlusMS(curMillis/1000, curMillis%1000) + "</h5>" );
+          client.println( "<h5>GHmgr v" VERSION_STR " " + hms(time_utc_sec + utcOffset) + " " + String(time_utc_sec + utcOffset) + " " + SecondsPlusMS(time_utc_sec, time_utc_ms) + " " + SecondsPlusMS(ntpState/1000, ntpState%1000) + " " + SecondsPlusMS(curMillis/1000, curMillis%1000) + " " + SecondsPlusMS(lastNtpCheck/1000, lastNtpCheck%1000) + "</h5>" );
           client.println( "<h6>Current</h6>" );
           client.print( "<p>In: ");
           client.print( lastDHT[lastDHTIdx] );
@@ -545,10 +556,11 @@ int loop_webserver()
             client.println( "</p>" );
           }
           client.println( "<p>Relays: " + String(relaySetting[0]) + "," + String(relaySetting[1]) + "," + String(relaySetting[2]) + "," + String(relaySetting[3]) + "</p>");
+          client.println( "<p>NTP last: " + String(ntpLastTime) + ", pkt " + String(ntpPacketSize) + "</p>" );
           client.println( "<h6>History " + String(SAMPLE_INTERVAL) + "</h6>" );
           dumpHist( &client, "In", insideHist );
-          dumpHist( &client, "Out", outsideHist );
-          dumpHist( &client, "Water", waterHist );
+          if (hasTherm1) dumpHist( &client, "Out", outsideHist );
+          if (hasTherm2) dumpHist( &client, "Water", waterHist );
           dumpHist( &client, "Hum", humidHist );
           dumpRelayHist( &client, settingHist );
           client.println("</html>");
@@ -677,24 +689,32 @@ int loop_sample()
     insideTemp = lastDHT[lastDHTIdx];
   }
   humidity = lastHum[lastDHTIdx];
+  // Temp is outside thermistor (if connected)
   if (Temp < -30 || Temp > 80)
   {
     hasTherm1 = 0;
   }
+  /***
+   * If thermistors are not connected, we may get random values that are in-range.
+   * This logic would have them reported when the random values happen to be in-range.
   else
   {
     hasTherm1 = 1;
     outsideTemp = Temp;
   }
+  ***/
+  // Temp2 is water thermistor (if connected)
   if (Temp2 < -30 || Temp2 > 80)
   {
     hasTherm2 = 0;
   }
+  /***
   else
   {
     hasTherm2 = 1;
     waterTemp = Temp2;
   }
+  ***/
   return 0;
 } // loop_sample()
 
@@ -742,6 +762,15 @@ int loop_time()
   {
     return 0;
   }
+  /**
+   * This should be happening in loop_task() every 2 hrs
+  // Force resync every 4.8 hours
+  if (delta_since_last >= 17280000)
+  {
+    ntpState = 0;
+    return 0;
+  }
+   */
   time_utc_millis = time_cur_millis;
   time_utc_sec += (delta_since_last / 1000);
   time_utc_ms = time_cur_millis % 1000;
@@ -804,10 +833,15 @@ int loop_task()
     }
   }
   // 2 hour NTP adjustment - our crude method for time update produces around 12 minutes drift
-  // per 24 hours
-  if (time_utc_sec % 7200 == 0)
+  // per 24 hours. Run this check every 2 hours, or if last check was unsuccessful, every 15 minutes.
+  unsigned long curM = millis();
+  time_delta = (curM - lastNtpCheck) / 1000;
+  if (time_delta < 0 || time_delta >= 7200 || (ntpPacketSize == 0 && time_delta >= 900))
   {
-    unsigned long curM = millis();
+    // Last three numbers on the webserver GHmgr line are ntpState, curMillis
+    // and lastNtpCheck. ntpState is the millis() at the time of the last
+    // successful NTP packet receipt.
+    lastNtpCheck = curM;
     if (curM < ntpState || curM - ntpState >= 7200000)
     {
       ntpState = 0;
