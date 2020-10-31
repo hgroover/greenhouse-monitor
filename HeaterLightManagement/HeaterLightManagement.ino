@@ -24,7 +24,7 @@
 // also requires the Adafruit Unified Sensor Library and has slightly different usage.
 #include <dht11.h>
 
-#define VERSION_STR  "1.0.12b"
+#define VERSION_STR  "1.0.13"
 // Offset from UTC to local standard time in seconds (e.g. Los Angeles is -8 hours or -28800 seconds; New Delhi, 19800
 // No DST - plants don't care about civic time
 //const long utcOffset = -28800; // PST
@@ -446,10 +446,18 @@ int loop_ntp()
       ***/
       //Serial.println("Local non-civic time is " + hms(epoch+utcOffset) );
     } // Valid NTP time received
+    else
+    {
+      ntpState = 0; // Try again
+    }
+  } // NTP response received (packet size > 0)
+  else 
+  {
+    //Serial.println("No NTP response");
+    ntpState = 0;
   }
-  //else Serial.println("No NTP response");
 
-   }
+   } // ntpState != 0
    return 0;
 } // loop_ntp()
 
@@ -841,6 +849,8 @@ int loop_task()
     // Last three numbers on the webserver GHmgr line are ntpState, curMillis
     // and lastNtpCheck. ntpState is the millis() at the time of the last
     // successful NTP packet receipt.
+    // As of 1.0.13 we retry on not getting a response, which means
+    // we could continuously check for NTP until we get a valid response.
     lastNtpCheck = curM;
     if (curM < ntpState || curM - ntpState >= 7200000)
     {
@@ -1003,5 +1013,3 @@ String SecondsPlusMS(unsigned long second_part, unsigned long ms_part )
   if (ms_part < 100) r += "0";
   return r + String(ms_part);
 }
-
-
