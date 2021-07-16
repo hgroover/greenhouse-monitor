@@ -176,24 +176,27 @@ void loop() {
           }
           else
           {
+            // One might thing that &line_buffer[3] would be the string starting from the number,
+            // but not so...
             switch (line_buffer[1]) {
               case '1': // FTO
-                opt1_FTO = int(&line_buffer[3]);
+                opt1_FTO = String(line_buffer).substring(3).toInt();
                 break;
               case '2': // FPOST
-                opt2_FPOST = int(&line_buffer[3]);
+                opt2_FPOST = String(line_buffer).substring(3).toInt();
                 break;
               case '3': // DTO
-                opt3_DTO = int(&line_buffer[3]);
+                opt3_DTO = String(line_buffer).substring(3).toInt();
                 break;
               case '4': // DPOST
-                opt4_DPOST = int(&line_buffer[3]);
+                opt4_DPOST = String(line_buffer).substring(3).toInt();
                 break;
               case '5': // AUX1LEN
-                opt5_AUX1LEN = int(&line_buffer[3]);
+                opt5_AUX1LEN = String(line_buffer).substring(3).toInt();
+                Serial.println("AUX1 len " + String(opt5_AUX1LEN) + " <" + line_buffer);
                 break;
               case '6': // AUX2LEN
-                opt6_AUX2LEN = int(&line_buffer[3]);
+                opt6_AUX2LEN = String(line_buffer).substring(3).toInt();
                 break;
               default:
                 Serial.println("Invalid opt");
@@ -285,7 +288,7 @@ void loop() {
     case 3: // AUX1 
       if (mode_elapsed >= opt5_AUX1LEN)
       {
-         Serial.println("AUX1 complete " + String(mode_elapsed / 1000));
+         Serial.println("AUX1 complete " + String(mode_elapsed / 1000) + " L:" + String(opt5_AUX1LEN));
          delay(150);
          digitalWrite(pins[rly_aux1], HIGH);
          delay(250);

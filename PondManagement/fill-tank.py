@@ -13,6 +13,7 @@ if __name__=='__main__':
   #ser.flush()
 
   # Start fill via f, wait for FILCOMP then FPH
+  # Optionally first send $1=<fto-s> and/or $2=<fpost-s>
   sent = 0
   got_fph = 0
   post_fph_count = 0
@@ -21,7 +22,7 @@ if __name__=='__main__':
   if dht11_gpio != 0:
      # Worst-case of immediate completion and unresponsive DHT11 will be about 30s
      post_fph_count = 10
-  outstr = "f"
+  outstr = "f\n"
   start_time = time.clock_gettime(time.CLOCK_MONOTONIC)
   while True:
     if ser.in_waiting > 0:
