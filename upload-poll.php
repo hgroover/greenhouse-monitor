@@ -30,6 +30,33 @@ else if (preg_match('/\/get\/(.+)/', $pathinfo, $m))
 	}
 	// else empty
 }
+else if (preg_match('/\/put\/(.+)/', $pathinfo, $m))
+{
+	header("Content-type: text/plain");
+	// req_out contains script output
+	// req_files[] may be an array of additional files uploaded
+	$req_inf = sprintf("%s/.data/%05d.req", realpath("."), $m[1]);
+	$req_log = sprintf("%s/.data/%05d.log", realpath("."), $m[1]);
+	if (array_key_exists('req_out', $_FILES))
+	{
+		// Interested in name, size, tmp_name
+		move_uploaded_file($_FILES['req_out']['tmp_name'], $req_log); // Returns true on success
+	}
+	if (array_key_exists('req_files', $_FILES))
+	{
+		$fn = 1;
+		// Array with at least one
+		foreach ($_FILES['req_files']['error'] as $key => $error)
+		{
+			$fname = sprintf("%s/.data/%05d-%d.dat", realpath("."), $m[1], $fn);
+			$fn = $fn + 1;
+			if ($error == UPLOAD_ERR_OK)
+			{
+				move_uploaded_file($_FILES['req_files']['tmp_name'][$key], $fname );
+			}
+		}
+	}
+}
 else
 {
 	printf("err2:[%s]\n", $pathinfo);
