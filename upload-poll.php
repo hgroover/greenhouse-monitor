@@ -41,6 +41,13 @@ else if (preg_match('/\/put\/(.+)/', $pathinfo, $m))
 	{
 		// Interested in name, size, tmp_name
 		move_uploaded_file($_FILES['req_out']['tmp_name'], $req_log); // Returns true on success
+		// Append remote IP address
+		$f = @fopen($req_log, "a");
+		if ($f)
+		{
+			fprintf( $f, "\nFrom remote address %s\n", $_SERVER['REMOTE_ADDR']);
+			fclose($f);
+		}
 	}
 	if (array_key_exists('req_files', $_FILES))
 	{
