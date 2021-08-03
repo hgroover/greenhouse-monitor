@@ -33,6 +33,7 @@ else if (preg_match('/\/get\/(.+)/', $pathinfo, $m))
 else if (preg_match('/\/put\/(.+)/', $pathinfo, $m))
 {
 	header("Content-type: text/plain");
+	// Useful examples: https://medium.com/@petehouston/upload-files-with-curl-93064dcccc76
 	// req_out contains script output
 	// req_files[] may be an array of additional files uploaded
 	$req_inf = sprintf("%s/.data/%05d.req", realpath("."), $m[1]);
