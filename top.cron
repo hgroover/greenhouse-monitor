@@ -33,7 +33,7 @@ else
     echo "Previous run still active after ${LATEST}s" >> ${LOGFILE}
 	rm -f ${COPYBASE}.*
   else
-    echo "Launching ${NOW}" >> ${LOGFILE}
+    echo "Launching ${NOW} using ${COPYBASE}" >> ${LOGFILE}
 	exec ${COPYBASE}.sh
   fi
 fi
