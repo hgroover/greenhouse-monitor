@@ -21,7 +21,7 @@ else
   NOW=$(date +'%s')
   for f in /tmp/$(basename $0).start
   do
-    if [ $f != ${COPYBASE}.start
+    if [ $f != ${COPYBASE}.start ]
 	then
 	  DELTA=$(expr ${NOW} - $(cat $f))
 	  [ ${DELTA} -lt ${LATEST} ] && LATEST=${DELTA}
