@@ -19,7 +19,7 @@ else
   # Find most recent copy
   LATEST=99999
   NOW=$(date +'%s')
-  for f in /tmp/$(basename $0).start
+  for f in /tmp/top-cron-*.start
   do
     if [ $f != ${COPYBASE}.start ]
 	then
