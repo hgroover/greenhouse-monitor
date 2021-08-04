@@ -1,0 +1,39 @@
+#!/bin/bash
+# top.cron - add to crontab. All output goes to /tmp/top.cron.log
+LOGFILE=/tmp/top.cron.log
+# Run from /tmp to allow self-update
+MYDIR=$(dirname $0)
+if [ "${MYDIR}" = "/tmp" ]
+then
+  # Actual cron singleton
+  BAREBASE=$(basename $0 .sh)
+  # Launch all worker scripts in background
+  /home/pi/github-scripts/poll-cmd.sh > /tmp/poll-cmd.out 2>&1 &
+  # On completion, delete .start
+  { sleep 2; rm -f ${BAREBASE}.*; } >/dev/null 2>&1 < /dev/null &
+else
+  # Create copy
+  COPYBASE=/tmp/$(basename $0)-$$
+  cp -p $0 ${COPYBASE}.sh
+  date +'%s' > ${COPYBASE}.start
+  # Find most recent copy
+  LATEST=99999
+  NOW=$(date +'%s')
+  for f in /tmp/$(basename $0).start
+  do
+    if [ $f != ${COPYBASE}.start
+	then
+	  DELTA=$(expr ${NOW} - $(cat $f))
+	  [ ${DELTA} -lt ${LATEST} ] && LATEST=${DELTA}
+	fi
+  done
+  # Launch singleton iff latest is at least 180 seconds (3 minutes) old
+  if [ ${LATEST} -lt 180 ]
+  then
+    echo "Previous run still active after ${LATEST}s" >> ${LOGFILE}
+	rm -f ${COPYBASE}.*
+  else
+    echo "Launching ${NOW}" >> ${LOGFILE}
+	exec ${COPYBASE}.sh
+  fi
+fi
