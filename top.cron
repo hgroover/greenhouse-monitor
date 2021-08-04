@@ -10,7 +10,9 @@ then
   # Launch all worker scripts in background
   /home/pi/github-scripts/poll-cmd.sh > /tmp/poll-cmd.out 2>&1 &
   # On completion, delete .start
-  { sleep 2; rm -f ${BAREBASE}.*; } >/tmp/cleanup.out 2>&1 < /dev/null &
+  sleep 2
+  rm -f /tmp/${BAREBASE}.* >/tmp/cleanup.out 2>&1
+  echo "Exiting copy, cleaned up /tmp/${BAREBASE}.*"
 else
   # Create copy
   COPYBASE=/tmp/top-cron-$$
