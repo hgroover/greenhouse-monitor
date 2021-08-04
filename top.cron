@@ -13,7 +13,7 @@ then
   { sleep 2; rm -f ${BAREBASE}.*; } >/dev/null 2>&1 < /dev/null &
 else
   # Create copy
-  COPYBASE=/tmp/$(basename $0)-$$
+  COPYBASE=/tmp/top-cron-$$
   cp -p $0 ${COPYBASE}.sh
   date +'%s' > ${COPYBASE}.start
   # Find most recent copy
