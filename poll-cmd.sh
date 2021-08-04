@@ -24,6 +24,7 @@ echo "last=${LAST}, checking..."
 TMPFILE=/tmp/pollcmd.$$
 curl --get ${URL}/poll/${LAST} > ${TMPFILE}.next || { echo "curl failure"; rm -f ${TMPFILE}.*; exit 1; }
 NEW=$(cat ${TMPFILE}.next)
+echo "From ${TMPFILE}.next: ${NEW}"
 if [ "${NEW}" != "" -a 0${NEW} -gt 0 ]
 then
   echo "New request ${NEW}"
