@@ -10,7 +10,7 @@ then
   # Launch all worker scripts in background
   /home/pi/github-scripts/poll-cmd.sh > /tmp/poll-cmd.out 2>&1 &
   # On completion, delete .start
-  { sleep 2; rm -f ${BAREBASE}.*; } >/dev/null 2>&1 < /dev/null &
+  { sleep 2; rm -f ${BAREBASE}.*; } >/tmp/cleanup.out 2>&1 < /dev/null &
 else
   # Create copy
   COPYBASE=/tmp/top-cron-$$
@@ -30,7 +30,7 @@ else
   # Launch singleton iff latest is at least 180 seconds (3 minutes) old
   if [ ${LATEST} -lt 180 ]
   then
-    echo "Previous run still active after ${LATEST}s" >> ${LOGFILE}
+    echo "Previous run ${COPYBASE} still active after ${LATEST}s" >> ${LOGFILE}
 	rm -f ${COPYBASE}.*
   else
     echo "Launching ${NOW} using ${COPYBASE}" >> ${LOGFILE}

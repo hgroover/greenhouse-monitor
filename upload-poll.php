@@ -15,7 +15,9 @@ if (preg_match('/\/poll\/(.+)/', $pathinfo, $m))
 	}
 	else
 	{
-		printf("%d %d rp %s\n", 0, $new_req, $new_reqf);
+		// Return 0 if not present
+		//printf("%d %d rp %s\n", 0, $new_req, $new_reqf);
+		printf("%d\n", 0);
 	}
 }
 else if (preg_match('/\/get\/(.+)/', $pathinfo, $m))
