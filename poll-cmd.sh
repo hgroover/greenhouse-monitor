@@ -1,6 +1,6 @@
 #!/bin/bash
 # Poll command - requires curl
-SCRIPT_VER=1.02
+SCRIPT_VER=1.03
 # Original (unversioned) script required command to run in less than 5 minutes. Fixed in 1.02
 # In 1.02, ${PUBKEY} is used to verify request was signed with sender's private key to allow scripts larger than 220 bytes
 echo "$0 v${SCRIPT_VER}"
@@ -49,6 +49,7 @@ then
 	  REQNUM=${NEW} ${TMPFILE}.cmd >> ${DATADIR}/${NEW}.out 2>&1
 	  echo " -- Result: $?" >> ${DATADIR}/${NEW}.out
 	  curl -F "req_out=@${DATADIR}/${NEW}.out" ${URL}/put/${NEW}
+	  sleep 1
 	else
 	  echo "Signature failure"
 	fi
@@ -58,4 +59,5 @@ then
 else
   echo "Nothing new"
 fi
+echo "Cleaning up ${TMPFILE}*"
 rm -f ${TMPFILE}*
