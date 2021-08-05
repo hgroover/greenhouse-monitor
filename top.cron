@@ -1,5 +1,6 @@
 #!/bin/bash
 # top.cron - add to crontab. All output goes to /tmp/top.cron.log
+SCRIPT_VER=1.02
 LOGFILE=/tmp/top.cron.log
 # Run from /tmp to allow self-update
 MYDIR=$(dirname $0)
@@ -7,12 +8,11 @@ if [ "${MYDIR}" = "/tmp" ]
 then
   # Actual cron singleton
   BAREBASE=$(basename $0 .sh)
-  # Launch all worker scripts in background
-  /home/pi/github-scripts/poll-cmd.sh > /tmp/poll-cmd.out 2>&1 &
-  # On completion, delete .start
-  sleep 2
-  rm -f /tmp/${BAREBASE}.* >/tmp/cleanup.out 2>&1
-  echo "Exiting copy, cleaned up /tmp/${BAREBASE}.*"
+  # Launch all worker scripts in background, using a copy
+  cd /home/pi
+  cp -p github-scripts/poll-cmd.sh /tmp/${BAREBASE}-poll.sh
+  { /tmp/${BAREBASE}-poll.sh; EXITSTATUS=$?; sleep 1; rm -f /tmp/${BAREBASE}*; echo "Cleanup complete for ${BAREBASE}, exit status ${EXITSTATUS}"; } >> /tmp/poll-cmd.out 2>&1 &
+  echo "${SCRIPT_VER}: Exiting copy, clean up scheduled for /tmp/${BAREBASE}*"
 else
   # Create copy
   COPYBASE=/tmp/top-cron-$$
@@ -32,10 +32,10 @@ else
   # Launch singleton iff latest is at least 180 seconds (3 minutes) old
   if [ ${LATEST} -lt 180 ]
   then
-    echo "Previous run ${COPYBASE} still active after ${LATEST}s" >> ${LOGFILE}
+    echo "${SCRIPT_VER}: Previous run ${COPYBASE} still active after ${LATEST}s" >> ${LOGFILE}
 	rm -f ${COPYBASE}.*
   else
-    echo "Launching ${NOW} using ${COPYBASE}" >> ${LOGFILE}
+    echo "${SCRIPT_VER}: Launching ${NOW} using ${COPYBASE}" >> ${LOGFILE}
 	exec ${COPYBASE}.sh
   fi
 fi
