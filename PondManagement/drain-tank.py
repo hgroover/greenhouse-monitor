@@ -31,24 +31,28 @@ if __name__=='__main__':
       if line.startswith("FPH"):
         got_fph = 1
       print(line)
+      sys.stdout.flush()
     else:
       if sent == 0:
          elapsed = time.clock_gettime(time.CLOCK_MONOTONIC) - start_time
          if elapsed >= 3.0:
            sent = 1
            print('Sending {0:s} at {1:0.3f}'.format(outstr1, elapsed)) 
+           sys.stdout.flush()
            ser.write(outstr1.encode())
       if sent == 1:
          elapsed = time.clock_gettime(time.CLOCK_MONOTONIC) - start_time
          if elapsed >= 6.0:
            sent = 2
            print('Sending {0:s} at {1:0.3f}'.format(outstr2, elapsed))
+           sys.stdout.flush()
            ser.write(outstr2.encode())
       if sent == 2:
          elapsed = time.clock_gettime(time.CLOCK_MONOTONIC) - start_time
          if elapsed >= 9.0:
            sent = 3
            print('Sending {0:s} at {1:0.3f}'.format(outstr3, elapsed))
+           sys.stdout.flush()
            ser.write(outstr3.encode())
       if got_fph:
         post_fph_count = post_fph_count + 1
