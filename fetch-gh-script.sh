@@ -25,7 +25,7 @@ then
   do
     FDIR=$(dirname $1)
 	[ -d ${FDIR} ] || { echo "Creating ${FDIR}"; mkdir -p ${FDIR}; }
-    wget ${URL}/$1 -O $1.__tmp || { echo "Failed to fetch $1 from ${URL}"; exit 1; }
+    wget --quiet ${URL}/$1 -O $1.__tmp || { echo "Failed to fetch $1 from ${URL}"; exit 1; }
     FETCH_COUNT=$(expr ${FETCH_COUNT} + 1)
     chmod +x $1.__tmp
 	# Is it new?
