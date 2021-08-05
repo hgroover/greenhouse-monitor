@@ -1,7 +1,8 @@
 #!/bin/bash
 # top.cron - add to crontab. All output goes to /tmp/top.cron.log
 SCRIPT_VER=1.03
-LOGFILE=/tmp/top.cron.log
+DATEBASE=$(date +'%Y%m%d')
+LOGFILE=/tmp/top.cron.log.${DATEBASE}
 # Run from /tmp to allow self-update
 MYDIR=$(dirname $0)
 if [ "${MYDIR}" = "/tmp" ]
@@ -10,7 +11,6 @@ then
   BAREBASE=$(basename $0 .sh)
   # Launch all worker scripts in background, using a copy
   cd /home/pi
-  DATEBASE=$(date +'%Y%m%d')
   cp -p github-scripts/poll-cmd.sh /tmp/${BAREBASE}-poll.sh
   { /tmp/${BAREBASE}-poll.sh; EXITSTATUS=$?; sleep 1; rm -f /tmp/${BAREBASE}*; echo "Cleanup complete for ${BAREBASE}, exit status ${EXITSTATUS}"; } >> /tmp/poll-cmd.out.${DATEBASE} 2>&1 &
   echo "${SCRIPT_VER}: Exiting copy, clean up scheduled for /tmp/${BAREBASE}*"
