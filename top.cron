@@ -1,6 +1,6 @@
 #!/bin/bash
 # top.cron - add to crontab. All output goes to /tmp/top.cron.log
-SCRIPT_VER=1.02
+SCRIPT_VER=1.03
 LOGFILE=/tmp/top.cron.log
 # Run from /tmp to allow self-update
 MYDIR=$(dirname $0)
@@ -10,9 +10,15 @@ then
   BAREBASE=$(basename $0 .sh)
   # Launch all worker scripts in background, using a copy
   cd /home/pi
+  DATEBASE=$(date +'%Y%m%d')
   cp -p github-scripts/poll-cmd.sh /tmp/${BAREBASE}-poll.sh
-  { /tmp/${BAREBASE}-poll.sh; EXITSTATUS=$?; sleep 1; rm -f /tmp/${BAREBASE}*; echo "Cleanup complete for ${BAREBASE}, exit status ${EXITSTATUS}"; } >> /tmp/poll-cmd.out 2>&1 &
+  { /tmp/${BAREBASE}-poll.sh; EXITSTATUS=$?; sleep 1; rm -f /tmp/${BAREBASE}*; echo "Cleanup complete for ${BAREBASE}, exit status ${EXITSTATUS}"; } >> /tmp/poll-cmd.out.${DATEBASE} 2>&1 &
   echo "${SCRIPT_VER}: Exiting copy, clean up scheduled for /tmp/${BAREBASE}*"
+  # Check for older poll-cmd logs
+  for f in /tmp/poll-cmd.out.*
+  do
+    [ "${f}" = "/tmp/poll-cmd.out.${DATEBASE}" ] || { echo "Removing older log ${f}"; rm -f ${f}; }
+  done
 else
   # Create copy
   COPYBASE=/tmp/top-cron-$$
