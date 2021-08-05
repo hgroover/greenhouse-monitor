@@ -1,6 +1,6 @@
 #!/bin/bash
 # Poll command - requires curl
-SCRIPT_VER=1.03
+SCRIPT_VER=1.04
 # Original (unversioned) script required command to run in less than 5 minutes. Fixed in 1.02
 # In 1.02, ${PUBKEY} is used to verify request was signed with sender's private key to allow scripts larger than 220 bytes
 echo "$0 v${SCRIPT_VER}"
@@ -22,7 +22,7 @@ echo "$0 v${SCRIPT_VER}"
 LAST=$(cat ${DATADIR}/last)
 echo "last=${LAST}, checking..."
 TMPFILE=/tmp/pollcmd.$$
-curl --get ${URL}/poll/${LAST} > ${TMPFILE}.next || { echo "curl failure"; rm -f ${TMPFILE}.*; exit 1; }
+curl --get --silent ${URL}/poll/${LAST} > ${TMPFILE}.next || { echo "curl failure"; rm -f ${TMPFILE}.*; exit 1; }
 NEW=$(cat ${TMPFILE}.next)
 echo "From ${TMPFILE}.next: |${NEW}| $(ls -l ${TMPFILE}.next) output of curl --get ${URL}/poll/${LAST}"
 if [ "${NEW}" != "" -a 0${NEW} -gt 0 ]
