@@ -17,7 +17,7 @@ then
   # Check for older poll-cmd logs
   for f in /tmp/poll-cmd.out.*
   do
-    [ "${f}" = "/tmp/poll-cmd.out.${DATEBASE}" ] || { echo "Removing older log ${f}"; rm -f ${f}; }
+    [ "${f}" = "/tmp/poll-cmd.out.${DATEBASE}" -o "${f}" = "/tmp/poll-cmd.out.*" ] || { echo "Removing older log ${f}"; rm -f ${f}; }
   done
 else
   # Create copy
